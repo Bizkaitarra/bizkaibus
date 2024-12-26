@@ -6,6 +6,38 @@ body {
     padding: 0;
 }
 
+
 .card {
     border-radius: 8px;
+    overflow: hidden; /* Asegura que los elementos no sobresalgan */
+}
+
+.card-header {
+    padding: 0.5rem 1rem; /* Ajusta el padding */
+    background-color: #dc3545; /* Rojo */
+    color: white;
+    width: 100%; /* Asegura que ocupe todo el ancho */
+    border-bottom: 1px solid #ccc; /* Línea opcional para separar */
+}
+
+.card-header h5 {
+    margin: 0; /* Elimina márgenes internos */
+    text-align: center; /* Opcional: Centra el texto */
+}
+
+.card-body {
+    padding: 1rem; /* Ajusta el espacio interno del contenido */
+}
+
+
+.blink {
+    animation: blink-animation 1s steps(2, start) infinite;
+    display: inline-flex;
+    font-weight: bold;
+}
+
+@keyframes blink-animation {
+    to {
+        visibility: hidden;
+    }
 }
