@@ -8,7 +8,14 @@ document.addEventListener('DOMContentLoaded', function () {
         '0294'
     ];
 
-    fetchAndDisplayStops(paradas);
+    // Mostrar spinner durante la carga inicial
+    showSpinner();
+
+    // Cargar y mostrar paradas
+    fetchAndDisplayStops(paradas)
+        .then(() => {
+            hideSpinner(); // Ocultar spinner al finalizar la carga inicial
+        });
     // Configura la actualización automática cada 30 segundos
     setInterval(() => fetchAndDisplayStops(paradas), 30000);
 });
@@ -94,6 +101,17 @@ function generateBusCards(xmlDoc) {
         `;
     }
     return cards;
+}
+
+// Funciones para mostrar y ocultar el spinner
+function showSpinner() {
+    document.getElementById('loading-spinner').classList.remove('d-none');
+    document.getElementById('stop-list').classList.add('d-none');
+}
+
+function hideSpinner() {
+    document.getElementById('loading-spinner').classList.add('d-none');
+    document.getElementById('stop-list').classList.remove('d-none');
 }
 
 
