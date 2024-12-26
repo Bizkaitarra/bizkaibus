@@ -1,11 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () {
     const paradas = [
+        '0299',
+        '0276',
+        '0294',
         '2404',
         '0273',
         '0280',
-        '0299',
-        '0276',
-        '0294'
     ];
 
     // Mostrar spinner durante la carga inicial
