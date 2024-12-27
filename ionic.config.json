@@ -1,5 +1,7 @@
 {
   "name": "Nire Bizkaibus",
-  "integrations": {},
+  "integrations": {
+    "cordova": {}
+  },
   "type": "custom"
 }
