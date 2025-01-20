@@ -13,24 +13,50 @@
 </head>
 <body>
 <div id="app" class="container mt-4">
-    <div class="mb-4">
-        <label for="select-bizkaibus" class="form-label">Selecciona una parada de Bizkaibus:</label>
-        <select id="select-bizkaibus" class="form-select" multiple>
-            <option value="">Selecciona una parada...</option>
-        </select>
-    </div>
-    <div class="mb-4">
-        <label for="select-metro" class="form-label">Selecciona una estación de Metro:</label>
-        <select id="select-metro" class="form-select" multiple>
-            <option value="">Selecciona una estación...</option>
-        </select>
-    </div>
     <div id="loading-spinner" class="d-flex justify-content-center align-items-center" style="height: 100vh;">
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
     </div>
-    <div id="stop-list"></div>
+    <div class="accordion" id="accordionExample">
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    Bizkaibus
+                </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    <div class="mb-4">
+                        <label for="select-bizkaibus" class="form-label">Selecciona una parada de Bizkaibus:</label>
+                        <select id="select-bizkaibus" class="form-select" multiple>
+                            <option value="">Selecciona una parada...</option>
+                        </select>
+                    </div>
+                    <div id="bizkaibus-stop-list"></div>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                    Metro Bilbao
+                </button>
+            </h2>
+            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    <div class="mb-4">
+                        <label for="select-metro" class="form-label">Selecciona una estación de Metro:</label>
+                        <select id="select-metro" class="form-select" multiple>
+                            <option value="">Selecciona una estación...</option>
+                        </select>
+                    </div>
+                    <div id="metro-stop-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 

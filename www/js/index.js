@@ -34,6 +34,7 @@ async function loadSelects() {
             if (data[0].Code) {
                 console.log('cargando metro select...');
                 populateSelectMetro('select-metro', data, savedParadasMetro);
+                assignSelectedValues('select-metro', savedParadasMetro);
                 $('#select-metro').select2();
 
                 $('#select-metro').on('change', function (e) {
@@ -45,6 +46,7 @@ async function loadSelects() {
                 console.log('cargando bizkaibus select...');
                 console.log(data);
                 populateSelectBizkaibus('select-bizkaibus', data, savedParadasBizkaibus);
+                assignSelectedValues('select-bizkaibus', savedParadasBizkaibus);
                 $('#select-bizkaibus').select2();
                 $('#select-bizkaibus').on('change', function (e) {
                     const selected = $(this).val();
@@ -65,7 +67,7 @@ function populateSelectMetro(selectId, options, selectedValues) {
     options.forEach(option => {
         const opt = document.createElement('option');
         opt.value = option.Code;
-        opt.textContent = option.Code + '-' + option.Name + '-' + option.Lines;
+        opt.textContent = capitalize(option.Name) + '-' + option.Lines;
 
         // Verificar si el valor está en el array de valores seleccionados
         if (selectedValues && selectedValues.includes(option)) {
@@ -85,7 +87,7 @@ function populateSelectBizkaibus(selectId, options, selectedValues) {
     options.forEach(option => {
         const opt = document.createElement('option');
         opt.value = option.PARADA;
-        opt.textContent = option.DESCRIPCION_MUNICIPIO + '-' + option.PARADA + '-' + option.DENOMINACION;
+        opt.textContent = capitalize(option.DESCRIPCION_MUNICIPIO) + '-' + capitalize(option.PARADA) + '-' + capitalize(option.DENOMINACION);
 
         // Verificar si el valor está en el array de valores seleccionados
         if (selectedValues && selectedValues.includes(option)) {
@@ -96,11 +98,35 @@ function populateSelectBizkaibus(selectId, options, selectedValues) {
     });
 }
 
+function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+function assignSelectedValues(selectId, selectedValues) {
+    const selectElement = document.getElementById(selectId);
+
+    if (!selectElement) {
+        return;
+    }
+    Array.from(selectElement.options).forEach(option => {
+        if (!selectedValues) {
+            option.selected = false;
+        } else {
+            option.selected = selectedValues.includes(option.value);
+        }
+
+    });
+    //$(`#${selectId}`).trigger('change');
+
+}
 
 async function fetchAndDisplayStops() {
-    const paradas = JSON.parse(localStorage.getItem('selectedBizkaibus'));
-    const paradasMetro = JSON.parse(localStorage.getItem('selectedMetro'));
+    await fetchAndDisplayBizkaibusStops();
+    await fetchAndDisplayMetroStops()
+}
 
+async function fetchAndDisplayBizkaibusStops() {
+    const paradas = JSON.parse(localStorage.getItem('selectedBizkaibus'));
     const newStopsElement = document.createElement('div');
     newStopsElement.className = 'row gy-3';
 
@@ -114,6 +140,15 @@ async function fetchAndDisplayStops() {
             console.error("Error procesando datos BIZKAIBUS:", e);
         }
     }
+    const container = document.getElementById('bizkaibus-stop-list');
+    container.innerHTML = '';
+    container.appendChild(newStopsElement);
+}
+
+async function fetchAndDisplayMetroStops() {
+    const paradasMetro = JSON.parse(localStorage.getItem('selectedMetro'));
+    const newStopsElement = document.createElement('div');
+    newStopsElement.className = 'row gy-3';
 
     if (paradasMetro) {
         const fetchPromisesMetro = paradasMetro.map(parada => obtenerDatosEstacion(parada));
@@ -125,7 +160,7 @@ async function fetchAndDisplayStops() {
         }
     }
 
-    const container = document.getElementById('stop-list');
+    const container = document.getElementById('metro-stop-list');
     container.innerHTML = '';
     container.appendChild(newStopsElement);
 }
@@ -218,12 +253,10 @@ function generateBusCards(xmlDoc) {
 // Funciones para mostrar y ocultar el spinner
 function showSpinner() {
     document.getElementById('loading-spinner').classList.remove('d-none');
-    document.getElementById('stop-list').classList.add('d-none');
 }
 
 function hideSpinner() {
     document.getElementById('loading-spinner').classList.add('d-none');
-    document.getElementById('stop-list').classList.remove('d-none');
 }
 
 
