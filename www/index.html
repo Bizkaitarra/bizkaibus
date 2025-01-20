@@ -2,27 +2,42 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://apli.bizkaia.net https://api.metrobilbao.eus; style-src 'self' 'unsafe-inline';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' http://localhost:8000 https://apli.bizkaia.net https://api.metrobilbao.eus; style-src 'self' 'unsafe-inline';">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>Bizkaibus Basauri</title>
     <!-- Bootstrap CSS -->
     <link href="bootstrap-5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="select2-4.0.13/css/select2.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <link rel="shortcut icon" href="img/logo.png">
 </head>
 <body>
 <div id="app" class="container mt-4">
+    <div class="mb-4">
+        <label for="select-bizkaibus" class="form-label">Selecciona una parada de Bizkaibus:</label>
+        <select id="select-bizkaibus" class="form-select" multiple>
+            <option value="">Selecciona una parada...</option>
+        </select>
+    </div>
+    <div class="mb-4">
+        <label for="select-metro" class="form-label">Selecciona una estación de Metro:</label>
+        <select id="select-metro" class="form-select" multiple>
+            <option value="">Selecciona una estación...</option>
+        </select>
+    </div>
     <div id="loading-spinner" class="d-flex justify-content-center align-items-center" style="height: 100vh;">
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
     </div>
-    <div id="stop-list">
-    </div>
+    <div id="stop-list"></div>
 </div>
 
+
 <!-- Bootstrap JS (Opcional para interactividad) -->
+<script src="jquery-3.7.1.slim.min.js"></script>
 <script src="bootstrap-5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="select2-4.0.13/js/select2.min.js"></script>
 <script src="js/index.js"></script>
 </body>
 </html>

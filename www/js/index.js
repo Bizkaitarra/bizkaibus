@@ -1,49 +1,128 @@
-document.addEventListener('DOMContentLoaded', function () {
-    const paradas = [
-        '0299',
-        '0276',
-        '0294',
-        '2404',
-        '0273',
-        '0280',
-    ];
-    const paradasMetro = [
-        'BSR',
-        'CAV',
-        'ABA',
-        'IND',
-    ];
-
-    // Mostrar spinner durante la carga inicial
+document.addEventListener('DOMContentLoaded', async function () {
     showSpinner();
 
-    // Cargar y mostrar paradas
-    fetchAndDisplayStops(paradas, paradasMetro)
-        .then(() => hideSpinner()); // Ocultar spinner al finalizar la carga inicial
+    // Obtener paradas guardadas o usar las predeterminadas
+    loadSelects()
+        .then(() => {
+            // Cargar y mostrar paradas
+            fetchAndDisplayStops();
+        })
+        .finally(() => {
+            hideSpinner(); // Ocultar spinner al finalizar la carga inicial
 
-    // Configura la actualización automática cada 30 segundos
-    setInterval(() => fetchAndDisplayStops(paradas), 30000);
+            // Configura la actualización automática cada 30 segundos
+            setInterval(() => fetchAndDisplayStops(), 30000);
+        })
+        .catch(error => {
+            console.error('Error cargando las paradas:', error);
+            hideSpinner(); // Asegúrate de ocultar el spinner incluso si hay un error
+        });
 });
 
-async function fetchAndDisplayStops(paradas, paradasMetro) {
+
+async function loadSelects() {
+    const savedParadasBizkaibus = JSON.parse(localStorage.getItem('selectedBizkaibus'));
+    const savedParadasMetro = JSON.parse(localStorage.getItem('selectedMetro'));
+
+    const fetchPromises = [
+        cargarEstacionesJSON(),
+        cargarEstacionesMetroJSON()
+    ];
+    const results = await Promise.all(fetchPromises);
+    results.forEach(
+        data => {
+            if (data[0].Code) {
+                console.log('cargando metro select...');
+                populateSelectMetro('select-metro', data, savedParadasMetro);
+                $('#select-metro').select2();
+
+                $('#select-metro').on('change', function (e) {
+                    const selected = $(this).val();
+                    localStorage.setItem('selectedMetro', JSON.stringify(selected));
+                    fetchAndDisplayStops()
+                });
+            } else {
+                console.log('cargando bizkaibus select...');
+                console.log(data);
+                populateSelectBizkaibus('select-bizkaibus', data, savedParadasBizkaibus);
+                $('#select-bizkaibus').select2();
+                $('#select-bizkaibus').on('change', function (e) {
+                    const selected = $(this).val();
+                    localStorage.setItem('selectedBizkaibus', JSON.stringify(selected));
+                    fetchAndDisplayStops()
+                });
+            }
+        }
+    );
+}
+
+function populateSelectMetro(selectId, options, selectedValues) {
+    const selectElement = document.getElementById(selectId);
+
+    // Limpiar el select antes de añadir nuevas opciones
+    selectElement.innerHTML = '';
+
+    options.forEach(option => {
+        const opt = document.createElement('option');
+        opt.value = option.Code;
+        opt.textContent = option.Code + '-' + option.Name + '-' + option.Lines;
+
+        // Verificar si el valor está en el array de valores seleccionados
+        if (selectedValues && selectedValues.includes(option)) {
+            opt.selected = true;  // Marcar la opción como seleccionada
+        }
+
+        selectElement.appendChild(opt);
+    });
+}
+
+function populateSelectBizkaibus(selectId, options, selectedValues) {
+    const selectElement = document.getElementById(selectId);
+
+    // Limpiar el select antes de añadir nuevas opciones
+    selectElement.innerHTML = '';
+
+    options.forEach(option => {
+        const opt = document.createElement('option');
+        opt.value = option.PARADA;
+        opt.textContent = option.DESCRIPCION_MUNICIPIO + '-' + option.PARADA + '-' + option.DENOMINACION;
+
+        // Verificar si el valor está en el array de valores seleccionados
+        if (selectedValues && selectedValues.includes(option)) {
+            opt.selected = true;  // Marcar la opción como seleccionada
+        }
+
+        selectElement.appendChild(opt);
+    });
+}
+
+
+async function fetchAndDisplayStops() {
+    const paradas = JSON.parse(localStorage.getItem('selectedBizkaibus'));
+    const paradasMetro = JSON.parse(localStorage.getItem('selectedMetro'));
+
     const newStopsElement = document.createElement('div');
     newStopsElement.className = 'row gy-3';
 
-    // Hacer todas las llamadas a la API en paralelo
-    const fetchPromises = paradas.map(parada => fetchStopData(parada));
-    try {
-        const results = await Promise.all(fetchPromises);
-        results.forEach(data => appendStops(data, newStopsElement));
-    } catch (e) {
-        console.error("Error procesando datos BIZKAIBUS:", e);
+    if (paradas) {
+        // Hacer todas las llamadas a la API en paralelo
+        const fetchPromises = paradas.map(parada => fetchStopData(parada));
+        try {
+            const results = await Promise.all(fetchPromises);
+            results.forEach(data => appendStops(data, newStopsElement));
+        } catch (e) {
+            console.error("Error procesando datos BIZKAIBUS:", e);
+        }
     }
 
-    const fetchPromisesMetro = paradasMetro.map(parada => obtenerDatosEstacion(parada));
-    try {
-        const results = await Promise.all(fetchPromisesMetro);
-        results.forEach(data => crearCuadroEstacion(data, newStopsElement));
-    } catch (e) {
-        console.error("Error procesando datos METRO:", e);
+    if (paradasMetro) {
+        const fetchPromisesMetro = paradasMetro.map(parada => obtenerDatosEstacion(parada));
+        try {
+            const results = await Promise.all(fetchPromisesMetro);
+            results.forEach(data => crearCuadroEstacion(data, newStopsElement));
+        } catch (e) {
+            console.error("Error procesando datos METRO:", e);
+        }
     }
 
     const container = document.getElementById('stop-list');
@@ -54,7 +133,7 @@ async function fetchAndDisplayStops(paradas, paradasMetro) {
 // Función para hacer una llamada a la API
 async function fetchStopData(parada) {
     const url = `https://apli.bizkaia.net/APPS/DANOK/TQWS/TQ.ASMX/GetPasoParadaMobile_JSON?callback=%22%22&strLinea=&strParada=${parada}`;
-    const response = await fetch(url, { method: 'GET' });
+    const response = await fetch(url, {method: 'GET'});
     const text = await response.text();
     let cleanedText = text.replace('""(', '').replace(');', '').replace(/'/g, '"');
     const jsonData = JSON.parse(cleanedText);
@@ -170,6 +249,34 @@ async function obtenerDatosEstacion(codigoEstacion) {
     }
 }
 
+async function cargarEstacionesJSON() {
+    try {
+        const ruta = '../data/paradas.json';
+        const response = await fetch(ruta); // Cargar el archivo JSON
+        if (!response.ok) {
+            throw new Error(`Error al cargar el archivo JSON: ${response.statusText}`);
+        }
+        return await response.json(); // Devolver el contenido del JSON
+    } catch (error) {
+        console.error("Error al cargar el archivo JSON:", error);
+        throw error; // Relanzar el error para manejarlo externamente si es necesario
+    }
+}
+
+async function cargarEstacionesMetroJSON() {
+    try {
+        const ruta = '../data/paradas_metro.json';
+        const response = await fetch(ruta); // Cargar el archivo JSON
+        if (!response.ok) {
+            throw new Error(`Error al cargar el archivo JSON: ${response.statusText}`);
+        }
+        return await response.json(); // Devolver el contenido del JSON
+    } catch (error) {
+        console.error("Error al cargar el archivo JSON:", error);
+        throw error; // Relanzar el error para manejarlo externamente si es necesario
+    }
+}
+
 // Función para crear y renderizar el cuadro de la estación
 function crearCuadroEstacion(datosEstacion, container) {
     const denominacionParada = datosEstacion.name || 'Parada desconocida';
@@ -224,7 +331,7 @@ function generateMetroCards(datosEstacion) {
             `;
             const nextTimeSpan = `
                 <span class="badge bg-secondary">
-                    H. estimada: ${new Date(nextArrival).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    H. estimada: ${new Date(nextArrival).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
                 </span>
             `;
 
@@ -245,6 +352,37 @@ function generateMetroCards(datosEstacion) {
         }
     }
     return cards;
+}
+
+
+async function fetchAndProcessJSON() {
+    const url = "https://apli.bizkaia.net/APPS/DANOK/TQWS/TQ.ASMX/GetParadas_JSON?callback=";
+
+    try {
+        // Realizamos la solicitud a la URL
+        const response = await fetch(url);
+
+        // Verificamos si la respuesta fue exitosa
+        if (!response.ok) {
+            throw new Error(`Error en la solicitud: ${response.status}`);
+        }
+
+        // Obtenemos el texto de la respuesta
+        const responseText = await response.text();
+
+        // Quitamos los primeros 3 caracteres y los últimos 2
+        const trimmedResponse = responseText.slice(3, -2);
+        console.log(trimmedResponse);
+
+        // Convertimos el texto recortado en un objeto JSON
+        const jsonResult = JSON.parse(trimmedResponse);
+
+        // Devolvemos el JSON resultante
+        return jsonResult;
+    } catch (error) {
+        console.error("Error al procesar la solicitud:", error);
+        throw error; // Re-lanzamos el error para que pueda ser manejado por quien llame a la función
+    }
 }
 
 
